@@ -1,4 +1,4 @@
-from word_features import get_data_and_labels_from_corpus, get_feature_vector_for_word
+from word_features import data_and_labels_for_model_1, get_feature_vector_for_word
 from sklearn.linear_model import LogisticRegression
 
 
@@ -12,7 +12,7 @@ MODEL_3_OUTPUT_FILE = "output/output_test3.tag"
 
 
 def get_trained_model1():
-	train_d, train_l = get_data_and_labels_from_corpus(TRAIN_DATA_CORPUS)
+	train_d, train_l = data_and_labels_for_model_1(TRAIN_DATA_CORPUS)
 	logistic = LogisticRegression()
 	logistic.fit(train_d, train_l)
 	return logistic

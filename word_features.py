@@ -8,7 +8,7 @@ MAXIMUM_WORD_LENGTH = 80
 GENE_1_LABEL = "GENE1"
 GENE_2_LABEL = "GENE2"
 TAG_LABEL = "TAG"
-TRAINING_DATA_CORPUS = "../data/train.tag"
+
 
 
 char_index_map = {}
@@ -17,12 +17,12 @@ for i, c in enumerate(ACCEPTED_CHARACTERS):
 
 
 def get_feature_vector_for_word(word):
-	vector = np.zeros((NUM_ACCEPTED_CHARACTERS*MAXIMUM_WORD_LENGTH, 1))
+	vector = np.zeros((1, NUM_ACCEPTED_CHARACTERS*MAXIMUM_WORD_LENGTH))
 	for i, c in enumerate(word):
 		char_index_offset = i*NUM_ACCEPTED_CHARACTERS
 		char_value_offset = char_index_map[c]
 		feature_index = char_index_offset + char_value_offset
-		vector[feature_index, :]= 1
+		vector[:, feature_index] = 1
 	return vector
 
 
@@ -57,16 +57,12 @@ def get_data_and_labels_from_corpus(corpus_path):
 	labels = []
 	for word, label in word_to_label.iteritems():
 		feature_vectors.append(get_feature_vector_for_word(word))
-		labels.append(np.array([label]))
+		labels.append(label)
 
 	n = len(labels)
 	d = NUM_ACCEPTED_CHARACTERS*MAXIMUM_WORD_LENGTH
-	data_matrix = np.zeros((d, n))
-	labels_vector = np.array([labels])
+	data_matrix = np.zeros((n, d))
+	labels_vector = np.array(labels)
 	for i in range(n):
-		data_matrix[:, i:i+1] = feature_vectors[i]
+		data_matrix[i:i+1, :] = feature_vectors[i]
 	return data_matrix, labels_vector
-
-data, labels = get_data_and_labels_from_corpus(TRAINING_DATA_CORPUS)
-print(data)
-print(labels)

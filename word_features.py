@@ -10,7 +10,6 @@ GENE_2_LABEL = "GENE2"
 TAG_LABEL = "TAG"
 
 
-
 char_index_map = {}
 for i, c in enumerate(ACCEPTED_CHARACTERS):
 	char_index_map[c] = i

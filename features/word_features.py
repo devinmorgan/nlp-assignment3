@@ -2,9 +2,9 @@ import numpy as np
 from string import ascii_lowercase, ascii_uppercase, digits
 
 
-ACCEPTED_CHARACTERS = list(ascii_uppercase + ascii_lowercase + digits + "!@#$%^&*()-_+={[}]|\\:;\"\'<,>.?/")
+ACCEPTED_CHARACTERS = list(ascii_uppercase + ascii_lowercase + digits + "#$%&*()-_+=[]|:;\"\'<,>.?/")
 NUM_ACCEPTED_CHARACTERS = len(ACCEPTED_CHARACTERS)
-MAXIMUM_WORD_LENGTH = 100
+MAXIMUM_WORD_LENGTH = 80
 GENE_1_LABEL = "GENE1"
 GENE_2_LABEL = "GENE2"
 TAG_LABEL = "TAG"
@@ -35,33 +35,37 @@ def get_label_for_tag(tag):
 		return 1
 
 
-def get_data_and_labels_from_corpus(corpus_path):
+def extract_unique_words_and_labels(corpus_path):
 	with open(corpus_path) as f:
-		feature_vectors = []
-		labels = []
-		count = 0
+		words_to_label = {}
 		while True:
 			id = f.readline()
 			text = f.readline().strip()
-			count += 1
-			for token in text.split(" "):
-				data = token.split("_")
-				word = data[0]
-				tag = data[1]
-				feature_vector = get_feature_vector_for_word(word)
-				feature_vectors.append(feature_vector)
-				label = get_label_for_tag(tag)
-				labels.append(label)
-			if not text:
+			if text:
+				for token in text.split(" "):
+					data = token.split("_")
+					word = data[0]
+					tag = data[1]
+					words_to_label[word] = tag
+			else:
 				break
+		return words_to_label
 
-		n = len(labels)
-		d = NUM_ACCEPTED_CHARACTERS
-		data_matrix = np.zeros((d, n))
-		labels_vector = np.array([labels])
-		for i in range(n):
-			data_matrix[:, i:i+1] = np.array(feature_vectors[i])
-		return data_matrix, labels_vector
+def get_data_and_labels_from_corpus(corpus_path):
+	word_to_label = extract_unique_words_and_labels(corpus_path)
+	feature_vectors = []
+	labels = []
+	for word, label in word_to_label.iteritems():
+		feature_vectors.append(get_feature_vector_for_word(word))
+		labels.append(np.array([label]))
+
+	n = len(labels)
+	d = NUM_ACCEPTED_CHARACTERS*MAXIMUM_WORD_LENGTH
+	data_matrix = np.zeros((d, n))
+	labels_vector = np.array([labels])
+	for i in range(n):
+		data_matrix[:, i:i+1] = feature_vectors[i]
+	return data_matrix, labels_vector
 
 data, labels = get_data_and_labels_from_corpus(TRAINING_DATA_CORPUS)
 print(data)

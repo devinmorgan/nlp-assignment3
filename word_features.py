@@ -4,7 +4,7 @@ from string import ascii_lowercase, ascii_uppercase, digits
 
 ACCEPTED_CHARACTERS = list(ascii_uppercase + ascii_lowercase + digits + "#$%&*()-_+=[]|:;\"\'<,>.?/")
 NUM_ACCEPTED_CHARACTERS = len(ACCEPTED_CHARACTERS)
-MAXIMUM_WORD_LENGTH = 80
+MAXIMUM_WORD_LENGTH = 210
 GENE_1_LABEL = "GENE1"
 GENE_2_LABEL = "GENE2"
 TAG_LABEL = "TAG"
@@ -15,8 +15,8 @@ for i, c in enumerate(ACCEPTED_CHARACTERS):
 	char_index_map[c] = i
 
 
-def get_feature_vector_for_word(word):
-	vector = np.zeros((1, NUM_ACCEPTED_CHARACTERS*MAXIMUM_WORD_LENGTH))
+def get_feature_vector_for_word(word, maximum_word_length):
+	vector = np.zeros((1, NUM_ACCEPTED_CHARACTERS*maximum_word_length), dtype=bool)
 	for i, c in enumerate(word):
 		char_index_offset = i*NUM_ACCEPTED_CHARACTERS
 		char_value_offset = char_index_map[c]
@@ -50,7 +50,7 @@ def extract_unique_words_and_labels(corpus_path):
 				break
 		return words_to_label
 
-def get_data_and_labels_from_corpus(corpus_path):
+def get_data_and_labels_from_corpus(corpus_path, maximum_word_length):
 	word_to_label = extract_unique_words_and_labels(corpus_path)
 	feature_vectors = []
 	labels = []
@@ -59,9 +59,9 @@ def get_data_and_labels_from_corpus(corpus_path):
 		labels.append(label)
 
 	n = len(labels)
-	d = NUM_ACCEPTED_CHARACTERS*MAXIMUM_WORD_LENGTH
-	data_matrix = np.zeros((n, d))
-	labels_vector = np.array(labels)
+	d = NUM_ACCEPTED_CHARACTERS*maximum_word_length
+	data_matrix = np.zeros((n, d), dtype=bool)
+	labels_vector = np.array(labels, dtype=bool)
 	for i in range(n):
 		data_matrix[i:i+1, :] = feature_vectors[i]
 	return data_matrix, labels_vector

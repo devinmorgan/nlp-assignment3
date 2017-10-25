@@ -42,10 +42,10 @@ def extract_unique_words_and_labels(corpus_path):
 			text = f.readline().strip()
 			if text:
 				for token in text.split(" "):
-					data = token.split("_")
-					word = data[0]
-					tag = data[1]
-					words_to_label[word] = tag
+					parts = token.split("_")
+					word = parts[0]
+					tag = parts[1]
+					words_to_label[word] = get_label_for_tag(tag)
 			else:
 				break
 		return words_to_label

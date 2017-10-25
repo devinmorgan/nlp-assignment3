@@ -72,7 +72,7 @@ def data_and_labels_for_model_1(corpus_path):
 
 def data_and_labels_for_model_2(corpus_path, context_word_size):
 	words_to_label, words_list = extract_words_and_labels(corpus_path)
-	words_list = [""]*context_word_size + words_list
+	words_list = [""]*(context_word_size-1) + words_list
 	feature_vectors = []
 	labels = []
 	for i in xrange(context_word_size-1, len(words_list)):

@@ -68,5 +68,5 @@ def predict_test_data(model, output_file):
 # m1 = get_trained_model1()
 # predict_test_data(m1, MODEL_1_OUTPUT_FILE)
 
-# m2 = get_trained_model2()
-# predict_test_data(m2, MODEL_2_OUTPUT_FILE)
+m2 = get_trained_model2()
+predict_test_data(m2, MODEL_2_OUTPUT_FILE)

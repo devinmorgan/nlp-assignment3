@@ -1,4 +1,4 @@
-from word_features import data_and_labels_for_model_1, get_feature_vector_for_word
+from word_features import data_and_labels_for_model_1, data_and_labels_for_model_2, get_feature_vector_for_word
 from sklearn.linear_model import LogisticRegression
 
 
@@ -13,6 +13,13 @@ MODEL_3_OUTPUT_FILE = "output/output_test3.tag"
 
 def get_trained_model1():
 	train_d, train_l = data_and_labels_for_model_1(TRAIN_DATA_CORPUS)
+	logistic = LogisticRegression()
+	logistic.fit(train_d, train_l)
+	return logistic
+
+
+def get_trained_model2():
+	train_d, train_l = data_and_labels_for_model_2(TRAIN_DATA_CORPUS, context_word_size=3)
 	logistic = LogisticRegression()
 	logistic.fit(train_d, train_l)
 	return logistic
@@ -37,7 +44,6 @@ def predict_text_with_model(text, model):
 	return " ".join(new_tokens)
 
 
-
 def write_output_to_file(output, file_name):
 	with open(file_name, 'w') as f:
 		for line in output:
@@ -58,8 +64,9 @@ def predict_test_data(model, output_file):
 				break
 		write_output_to_file(output, output_file)
 
-m1 = get_trained_model1()
-predict_test_data(m1, MODEL_1_OUTPUT_FILE)
-# logistic = get_trained_model1()
-# dev_d, dev_l = get_data_and_labels_from_corpus(DEV_DATA_CORPUS)
-# print "Score: ", logistic.score(dev_d, dev_l)
+
+# m1 = get_trained_model1()
+# predict_test_data(m1, MODEL_1_OUTPUT_FILE)
+
+# m2 = get_trained_model2()
+# predict_test_data(m2, MODEL_2_OUTPUT_FILE)

@@ -14,36 +14,37 @@ class MaxEnt2:
             word = ngram[i]
             word_index_offset = i * wf.FEATURE_VECTOR_SIZE
             for j, c in enumerate(word):
+                if j >= wf.MAXIMUM_WORD_LENGTH:
+                    break
                 char_index_offset = j * wf.NUM_ACCEPTED_CHARACTERS
-                char_value_offset = wf.char_index_map[c]
-                feature_index = word_index_offset + char_index_offset + char_value_offset
-                vector[:, feature_index] = 1
+                if c in wf.char_index_map.keys():
+                    char_value_offset = wf.char_index_map[c]
+                    feature_index = word_index_offset + char_index_offset + char_value_offset
+                    vector[:, feature_index] = 1
         return vector
 
     def extract_ngrams_and_labels(self, corpus_path):
         with open(corpus_path) as f:
             ngrams_to_label = {}
-            ngrams_list = []
             while True:
                 f.readline()  # Skip ID lines
                 text = f.readline().strip()
                 if text:
-                    tokens = ["_TAG"] * (self.cws - 1) + text.split()
+                    tokens = ["_TAG"] * (self.cws - 1) + text.split(" ")
                     for i in xrange(self.cws - 1, len(tokens)):
                         ngram = tuple([tokens[j].split("_")[0] for j in xrange(i - self.cws + 1, i + 1)])
-                        ngrams_list.append(ngram)
                         tag = tokens[i].split("_")[1]
                         ngrams_to_label[ngram] = wf.get_label_for_tag(tag)
                 else:
                     break
-            return ngrams_to_label, ngrams_list
+            return ngrams_to_label
 
     def extract_data_and_labels(self, corpus_path):
-        ngrams_to_labels, ngrams_list = self.extract_ngrams_and_labels(corpus_path)
-        ngrams_list = [""] * (self.cws - 1) + ngrams_list
+        ngrams_to_labels = self.extract_ngrams_and_labels(corpus_path)
         feature_vectors = []
         labels = []
-        for ngram in ngrams_list:
+        # for ngram in ngrams_list:
+        for ngram, label in ngrams_to_labels.iteritems():
             feature_vector = self.get_feature_vector_for_ngram(ngram)
             feature_vectors.append(feature_vector)
             label = ngrams_to_labels[ngram]
@@ -75,3 +76,4 @@ class MaxEnt2:
             new_token = words_list[i] + "_" + tag
             new_tokens.append(new_token)
         return " ".join(new_tokens)
+

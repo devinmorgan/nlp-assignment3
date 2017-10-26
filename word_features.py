@@ -3,7 +3,7 @@ from string import ascii_lowercase, ascii_uppercase, digits
 
 ACCEPTED_CHARACTERS = list(ascii_uppercase + ascii_lowercase + digits + "#$%&*()-_+=[]|:;\"\'<,>.?/")
 NUM_ACCEPTED_CHARACTERS = len(ACCEPTED_CHARACTERS)
-MAXIMUM_WORD_LENGTH = 70
+MAXIMUM_WORD_LENGTH = 10
 FEATURE_VECTOR_SIZE = MAXIMUM_WORD_LENGTH * NUM_ACCEPTED_CHARACTERS
 
 GENE_1_LABEL = "GENE1"

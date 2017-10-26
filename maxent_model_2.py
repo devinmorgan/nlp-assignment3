@@ -19,7 +19,7 @@ class MaxEnt2:
             ngrams_to_label = {}
             ngrams_list = []
             while True:
-                f.next()  # Skip ID lines
+                f.readline()  # Skip ID lines
                 text = f.readline().strip()
                 if text:
                     tokens = ["_TAG"] * (self.cws - 1) + text.split()

@@ -13,7 +13,7 @@ class MaxEnt1:
             words_to_label = {}
             words_list = []
             while True:
-                f.next()  # Skip ID lines
+                f.readline()  # Skip ID lines
                 text = f.readline().strip()
                 if text:
                     for token in text.split(" "):

@@ -8,8 +8,10 @@ class MaxEnt2:
         self.logistic = LogisticRegression()
 
     @staticmethod
-    def get_feature_vector_for_word(word):
-        pass
+    def get_feature_vector_for_word(context_words):
+        features = [wf.get_feature_vector_for_word(word) for word in context_words]
+        feature_vector = np.concatenate(tuple(features), axis=1)
+        return feature_vector
 
     @staticmethod
     def extract_data_and_labels(corpus_path, context_word_size):
@@ -18,17 +20,10 @@ class MaxEnt2:
         feature_vectors = []
         labels = []
         for i in xrange(context_word_size - 1, len(words_list)):
-            prev_prev_word = words_list[i - 2]
-            prev_word = words_list[i - 1]
-            word = words_list[i]
-            trio = (
-                MaxEnt2.get_feature_vector_for_word(prev_prev_word),
-                MaxEnt2.get_feature_vector_for_word(prev_word),
-                MaxEnt2.get_feature_vector_for_word(word)
-            )
-            feature_vector = np.concatenate(trio, axis=1)
+            context_words = [words_list[j] for j in xrange(i - context_word_size + 1, i+1)]
+            feature_vector = MaxEnt2.get_feature_vector_for_word(context_words)
             feature_vectors.append(feature_vector)
-            label = words_to_label[word]
+            label = words_to_label[words_list[i]]
             labels.append(label)
 
         n = len(labels)
@@ -40,7 +35,7 @@ class MaxEnt2:
         return data_matrix, labels_vector
 
     def train(self, training_data_file):
-        train_d, train_l = MaxEnt2.extract_data_and_labels(training_data_file)
+        train_d, train_l = MaxEnt2.extract_data_and_labels(training_data_file, context_word_size=3)
         self.logistic.fit(train_d, train_l)
 
     def tag_text(self, text):

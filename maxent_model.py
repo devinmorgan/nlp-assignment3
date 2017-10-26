@@ -12,57 +12,57 @@ MODEL_3_OUTPUT_FILE = "output/output_test3.tag"
 
 
 def get_trained_model1():
-	train_d, train_l = data_and_labels_for_model_1(TRAIN_DATA_CORPUS)
-	logistic = LogisticRegression()
-	logistic.fit(train_d, train_l)
-	return logistic
+    train_d, train_l = data_and_labels_for_model_1(TRAIN_DATA_CORPUS)
+    logistic = LogisticRegression()
+    logistic.fit(train_d, train_l)
+    return logistic
 
 
 def get_trained_model2():
-	train_d, train_l = data_and_labels_for_model_2(TRAIN_DATA_CORPUS, context_word_size=3)
-	logistic = LogisticRegression()
-	logistic.fit(train_d, train_l)
-	return logistic
+    train_d, train_l = data_and_labels_for_model_2(TRAIN_DATA_CORPUS, context_word_size=3)
+    logistic = LogisticRegression()
+    logistic.fit(train_d, train_l)
+    return logistic
 
 
 def predict_text_with_model(text, model):
-	tokens = text.strip().split(" ")
-	new_tokens = []
-	for t in tokens:
-		parts = t.split("_")
-		word = parts[0]
-		feature_vector = get_feature_vector_for_word(word)
-		pred = model.predict(feature_vector)
+    tokens = text.strip().split(" ")
+    new_tokens = []
+    for t in tokens:
+        parts = t.split("_")
+        word = parts[0]
+        feature_vector = get_feature_vector_for_word(word)
+        pred = model.predict(feature_vector)
 
-		tag = parts[1]
-		if pred == 0:
-			tag = "TAG"
-		elif pred == 1:
-			tag = "GENE1"
-		new_token = word + "_" + tag
-		new_tokens.append(new_token)
-	return " ".join(new_tokens)
+        tag = parts[1]
+        if pred == 0:
+            tag = "TAG"
+        elif pred == 1:
+            tag = "GENE1"
+        new_token = word + "_" + tag
+        new_tokens.append(new_token)
+    return " ".join(new_tokens)
 
 
 def write_output_to_file(output, file_name):
-	with open(file_name, 'w') as f:
-		for line in output:
-			f.write(line + "\n")
+    with open(file_name, 'w') as f:
+        for line in output:
+            f.write(line + "\n")
 
 
 def predict_test_data(model, output_file):
-	with open(DEV_DATA_CORPUS) as f:
-		output = []
-		while True:
-			id = f.readline().strip()
-			output.append(id)
-			text = f.readline().strip()
-			if text:
-				predicted_text = predict_text_with_model(text, model)
-				output.append(predicted_text)
-			else:
-				break
-		write_output_to_file(output, output_file)
+    with open(DEV_DATA_CORPUS) as f:
+        output = []
+        while True:
+            id = f.readline().strip()
+            output.append(id)
+            text = f.readline().strip()
+            if text:
+                predicted_text = predict_text_with_model(text, model)
+                output.append(predicted_text)
+            else:
+                break
+        write_output_to_file(output, output_file)
 
 
 # m1 = get_trained_model1()

@@ -14,8 +14,26 @@ class MaxEnt2:
         feature_vector = np.concatenate(tuple(features), axis=1)
         return feature_vector
 
+    def extract_ngrams_and_labels(self, corpus_path):
+        with open(corpus_path) as f:
+            ngrams_to_label = {}
+            ngrams_list = []
+            while True:
+                f.next()  # Skip ID lines
+                text = f.readline().strip()
+                if text:
+                    tokens = ["_TAG"] * (self.cws - 1) + text.split()
+                    for i in xrange(self.cws - 1, len(tokens)):
+                        ngram = tuple([tokens[j].split("_")[0] for j in xrange(i - self.cws + 1, i + 1)])
+                        ngrams_list.append(ngram)
+                        label = tokens[i].split("_")[1]
+                        ngrams_to_label[ngram] = label
+                else:
+                    break
+            return ngrams_to_label, ngrams_list
+
     def extract_data_and_labels(self, corpus_path):
-        words_to_label, words_list = wf.extract_words_and_labels(corpus_path)
+        words_to_label, words_list = MaxEnt2.extract_ngrams_and_labels(corpus_path)
         words_list = [""] * (self.cws - 1) + words_list
         feature_vectors = []
         labels = []

@@ -8,12 +8,31 @@ class MaxEnt1:
         self.logistic = LogisticRegression()
 
     @staticmethod
+    def extract_words_and_labels(corpus_path):
+        with open(corpus_path) as f:
+            words_to_label = {}
+            words_list = []
+            while True:
+                f.next()  # Skip ID lines
+                text = f.readline().strip()
+                if text:
+                    for token in text.split(" "):
+                        parts = token.split("_")
+                        word = parts[0]
+                        tag = parts[1]
+                        words_to_label[word] = wf.get_label_for_tag(tag)
+                        words_list.append(word)
+                else:
+                    break
+            return words_to_label, words_list
+
+    @staticmethod
     def get_feature_vector_for_word(word):
         return wf.get_feature_vector_for_word(word)
 
     @staticmethod
     def extract_data_and_labels(corpus_path):
-        words_to_label, _ = wf.extract_words_and_labels(corpus_path)
+        words_to_label, _ = MaxEnt1.extract_words_and_labels(corpus_path)
         feature_vectors = []
         labels = []
         for word, label in words_to_label.iteritems():

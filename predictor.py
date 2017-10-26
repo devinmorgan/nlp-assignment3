@@ -35,8 +35,7 @@ class Predictor:
             Predictor.write_output_to_file(output, output_file)
 
 
-# p1 = Predictor(MaxEnt1())
-# p1.tag_document(DEV_DATA_CORPUS, MODEL_1_OUTPUT_FILE)
-
-p2 = Predictor(MaxEnt2(context_word_size=3))
-p2.tag_document(DEV_DATA_CORPUS, MODEL_2_OUTPUT_FILE)
+p1 = Predictor(MaxEnt1())
+p1.tag_document(DEV_DATA_CORPUS, MODEL_1_OUTPUT_FILE)
+# p2 = Predictor(MaxEnt2(context_word_size=1))
+# p2.tag_document(DEV_DATA_CORPUS, MODEL_2_OUTPUT_FILE)

@@ -36,14 +36,11 @@ class MaxEnt1:
         tokens = text.strip().split(" ")
         new_tokens = []
         for t in tokens:
-            parts = t.split("_")
-            word = parts[0]
-            tag = parts[1]
+            word = t.split("_")[0]
             feature_vector = MaxEnt1.get_feature_vector_for_word(word)
             prediction = self.logistic.predict(feature_vector)
-            if prediction == 0:
-                tag = wf.NON_GENE_TAG
-            elif prediction == 1:
+            tag = wf.NON_GENE_TAG
+            if prediction == 1:
                 tag = wf.GENE_TAG
             new_token = word + "_" + tag
             new_tokens.append(new_token)

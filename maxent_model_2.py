@@ -8,11 +8,17 @@ class MaxEnt2:
         self.logistic = LogisticRegression()
         self.cws = context_word_size
 
-    @staticmethod
-    def get_feature_vector_for_word(context_words):
-        features = [wf.get_feature_vector_for_word(word) for word in context_words]
-        feature_vector = np.concatenate(tuple(features), axis=1)
-        return feature_vector
+    def get_feature_vector_for_ngram(self, ngram):
+        vector = np.zeros((1, wf.FEATURE_VECTOR_SIZE * self.cws), dtype=bool)
+        for i in xrange(len(ngram)):
+            word = ngram[i]
+            word_index_offset = i * wf.FEATURE_VECTOR_SIZE
+            for j, c in enumerate(word):
+                char_index_offset = j * wf.NUM_ACCEPTED_CHARACTERS
+                char_value_offset = wf.char_index_map[c]
+                feature_index = word_index_offset + char_index_offset + char_value_offset
+                vector[:, feature_index] = 1
+        return vector
 
     def extract_ngrams_and_labels(self, corpus_path):
         with open(corpus_path) as f:
@@ -26,22 +32,21 @@ class MaxEnt2:
                     for i in xrange(self.cws - 1, len(tokens)):
                         ngram = tuple([tokens[j].split("_")[0] for j in xrange(i - self.cws + 1, i + 1)])
                         ngrams_list.append(ngram)
-                        label = tokens[i].split("_")[1]
-                        ngrams_to_label[ngram] = label
+                        tag = tokens[i].split("_")[1]
+                        ngrams_to_label[ngram] = wf.get_label_for_tag(tag)
                 else:
                     break
             return ngrams_to_label, ngrams_list
 
     def extract_data_and_labels(self, corpus_path):
-        words_to_label, words_list = MaxEnt2.extract_ngrams_and_labels(corpus_path)
-        words_list = [""] * (self.cws - 1) + words_list
+        ngrams_to_labels, ngrams_list = self.extract_ngrams_and_labels(corpus_path)
+        ngrams_list = [""] * (self.cws - 1) + ngrams_list
         feature_vectors = []
         labels = []
-        for i in xrange(self.cws - 1, len(words_list)):
-            context_words = [words_list[j] for j in xrange(i - self.cws + 1, i+1)]
-            feature_vector = MaxEnt2.get_feature_vector_for_word(context_words)
+        for ngram in ngrams_list:
+            feature_vector = self.get_feature_vector_for_ngram(ngram)
             feature_vectors.append(feature_vector)
-            label = words_to_label[words_list[i]]
+            label = ngrams_to_labels[ngram]
             labels.append(label)
 
         n = len(labels)
@@ -61,8 +66,8 @@ class MaxEnt2:
         new_tokens = []
         words_list = [""]*(self.cws - 1) + [token.split("_")[0] for token in tokens]
         for i in xrange(len(words_list)):
-            context_words = [words_list[j] for j in xrange(i - self.cws + 1, i + 1)]
-            feature_vector = MaxEnt2.get_feature_vector_for_word(context_words)
+            context_words = tuple([words_list[j] for j in xrange(i - self.cws + 1, i + 1)])
+            feature_vector = self.get_feature_vector_for_ngram(context_words)
             prediction = self.logistic.predict(feature_vector)
             tag = wf.NON_GENE_TAG
             if prediction == 1:

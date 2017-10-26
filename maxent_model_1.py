@@ -8,6 +8,16 @@ class MaxEnt1:
         self.logistic = LogisticRegression()
 
     @staticmethod
+    def get_feature_vector_for_word(word):
+        vector = np.zeros((1, wf.NUM_ACCEPTED_CHARACTERS * wf.MAXIMUM_WORD_LENGTH), dtype=bool)
+        for i, c in enumerate(word):
+            char_index_offset = i * wf.NUM_ACCEPTED_CHARACTERS
+            char_value_offset = wf.char_index_map[c]
+            feature_index = char_index_offset + char_value_offset
+            vector[:, feature_index] = 1
+        return vector
+
+    @staticmethod
     def extract_words_and_labels(corpus_path):
         with open(corpus_path) as f:
             words_to_label = {}
@@ -27,16 +37,12 @@ class MaxEnt1:
             return words_to_label, words_list
 
     @staticmethod
-    def get_feature_vector_for_word(word):
-        return wf.get_feature_vector_for_word(word)
-
-    @staticmethod
     def extract_data_and_labels(corpus_path):
         words_to_label, _ = MaxEnt1.extract_words_and_labels(corpus_path)
         feature_vectors = []
         labels = []
         for word, label in words_to_label.iteritems():
-            feature_vectors.append(wf.get_feature_vector_for_word(word))
+            feature_vectors.append(MaxEnt1.get_feature_vector_for_word(word))
             labels.append(label)
 
         n = len(labels)

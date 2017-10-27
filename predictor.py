@@ -11,7 +11,7 @@ MODEL_2_OUTPUT_FILE = "output/output_test2.tag"
 
 class Predictor:
     def __init__(self, model):
-        model.train(TRAIN_DATA_CORPUS)
+        model.train()
         self.model = model
 
     @staticmethod
@@ -35,9 +35,9 @@ class Predictor:
             Predictor.write_output_to_file(output, output_file)
 
 
-# p1 = Predictor(MaxEnt1())
+# p1 = Predictor(MaxEnt1(TRAIN_DATA_CORPUS))
 # p1.tag_document(DEV_DATA_CORPUS, MODEL_1_OUTPUT_FILE)
-p2 = Predictor(MaxEnt2(context_word_size=2))
+p2 = Predictor(MaxEnt2(TRAIN_DATA_CORPUS, ngram_size=2))
 p2.tag_document(DEV_DATA_CORPUS, MODEL_2_OUTPUT_FILE)
 
 # import numpy as np

@@ -14,7 +14,7 @@ class FeatureExtractor:
     def __init__(self, train_corpus, ngram_size, pref_suff_uniqueness=30):
         self.ngram_size = ngram_size
         self.min_uniqueness = pref_suff_uniqueness
-        self.prefixes, self.prefix_index_mapping, self.suffixes, self.suffix_index_mapping = self.extract_prefixes_and_suffixes(train_corpus)
+        self.char_ngrams, self.char_ngram_mapping = self.extract_char_ngrams(train_corpus)
 
     @staticmethod
     def get_capital_letters_features(word):
@@ -40,7 +40,7 @@ class FeatureExtractor:
                 count += 1
         return np.array([[count]])
 
-    def extract_prefixes_and_suffixes(self, corpus_path):
+    def extract_char_ngrams(self, corpus_path):
         words = set()
         with open(corpus_path) as f:
             while True:
@@ -55,61 +55,48 @@ class FeatureExtractor:
                             words.add(word)
                 else:
                     break
-        prefixes = {}
-        suffixes = {}
+        char_ngrams = {}
         for word in words:
-            for i in range(3, 6):
-                pref = word[:i]
-                prefixes[pref] = prefixes.get(pref, 0) + 1
-                suff = word[-i:]
-                suffixes[suff] = suffixes.get(suff, 0) + 1
-        strong_prefixes = set([pref for pref in prefixes.keys() if prefixes[pref] > self.min_uniqueness])
-        prefix_index_mapping = { pref:i for i, pref in enumerate(strong_prefixes) }
-        strong_suffixes = set([suff for suff in suffixes.keys() if suffixes[suff] > self.min_uniqueness])
-        suffix_index_mapping = { suff:i for i, suff in enumerate(strong_suffixes) }
-        return strong_prefixes, prefix_index_mapping, strong_suffixes, suffix_index_mapping
+            if len(word) >= 3:
+                for i in xrange(len(word) - 2):
+                    char_ngram = word[i:i+3]
+                    char_ngrams[char_ngram] = char_ngrams.get(char_ngram, 0) + 1
+            else:
+                char_ngrams[word] = char_ngrams.get(word, 0) + 1
+        strong_ngrams = set([char_ngram for char_ngram in char_ngrams.keys() if char_ngrams[char_ngram] >= self.min_uniqueness])
+        ngram_index_mapping = { char_ngram:i for i, char_ngram in enumerate(strong_ngrams) }
+        return strong_ngrams, ngram_index_mapping
 
     def get_feature_vector_for_word(self, word, prev_labels):
-        prefix_features = self.get_prefix_features(word)
-        suffix_features = self.get_suffix_features(word)
+        char_ngram_features = self.get_ngram_features(word)
         word_length_feature = np.array([[len(word)]])
         capital_letters_feature = FeatureExtractor.get_capital_letters_features(word)
         digits_feature = FeatureExtractor.get_digits_features(word)
         special_characters_feature = FeatureExtractor.get_special_characters_feature(word)
         previous_genes_features = np.array([prev_labels])
         return np.concatenate(
-            (prefix_features,
-             suffix_features,
+            (char_ngram_features,
              word_length_feature,
              capital_letters_feature,
              digits_feature,
              special_characters_feature,
              previous_genes_features), axis=1)
 
-    def get_prefix_features(self, word):
-        prefix_feature_vector = np.zeros((1, len(self.prefixes)))
-        for pref, index in self.prefix_index_mapping.iteritems():
-            if word[:len(pref)] == pref:
-                prefix_feature_vector[:, index] = 1
-        return prefix_feature_vector
-
-    def get_suffix_features(self, word):
-        suffix_feature_vector = np.zeros((1, len(self.suffixes)))
-        for suff, index in self.suffix_index_mapping.iteritems():
-            if word[-len(suff):] == suff:
-                suffix_feature_vector[:, index] = 1
-        return suffix_feature_vector
+    def get_ngram_features(self, word):
+        ngram_feature_vector = np.zeros((1, len(self.char_ngrams)))
+        for char_ngram, index in self.char_ngram_mapping.iteritems():
+            if char_ngram in word:
+                ngram_feature_vector[:, index] = 1
+        return ngram_feature_vector
 
     def feature_vector_size(self):
-        prefixes_size = len(self.prefixes)
-        suffixes_size = len(self.suffixes)
+        char_ngrams_size = len(self.char_ngrams)
         word_length_size = 1
         capital_letters_size = 1
         digits_size = 1
         special_characters_size = 1
         preceding_genes_size = self.ngram_size - 1
-        return prefixes_size \
-               + suffixes_size \
+        return char_ngrams_size \
                + word_length_size \
                + capital_letters_size \
                + digits_size \

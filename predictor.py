@@ -34,5 +34,5 @@ class Predictor:
             Predictor.write_output_to_file(output, output_file)
 
 
-p2 = Predictor(MaxEnt2(TRAIN_DATA_CORPUS, ngram_size=, pref_suff_uniqueness=1))
+p2 = Predictor(MaxEnt2(TRAIN_DATA_CORPUS, ngram_size=3, pref_suff_uniqueness=1))
 p2.tag_document(DEV_DATA_CORPUS, MODEL_2_OUTPUT_FILE)

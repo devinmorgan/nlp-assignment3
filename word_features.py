@@ -1,9 +1,13 @@
-from string import ascii_uppercase
+from string import ascii_uppercase, digits
 import numpy as np
 
 
 CAPITAL_LETTERS = set(ascii_uppercase)
 SPECIAL_CHARACTERS = set("#$%&*()-_+=[]|:;\"\'<,>.?/")
+DIGITS = set(digits)
+GENE_1_LABEL = "GENE1"
+GENE_2_LABEL = "GENE2"
+TAG_LABEL = "TAG"
 
 
 class FeatureExtractor:
@@ -28,6 +32,14 @@ class FeatureExtractor:
                 count += 1
         return np.array([[count]])
 
+    @staticmethod
+    def get_digits_features(word):
+        count = 0
+        for c in word:
+            if c in DIGITS:
+                count += 1
+        return np.array([[count]])
+
     def extract_prefixes_and_suffixes(self, corpus_path):
         words = set()
         with open(corpus_path) as f:
@@ -35,13 +47,18 @@ class FeatureExtractor:
                 f.readline()  # Skip ID lines
                 text = f.readline().strip()
                 if text:
-                    words.update(text.split(" "))
+                    for token in text.split(" "):
+                        parts = token.split("_")
+                        word = parts[0]
+                        tag = parts[1]
+                        if tag == GENE_1_LABEL or tag == GENE_2_LABEL:
+                            words.add(word)
                 else:
                     break
         prefixes = {}
         suffixes = {}
         for word in words:
-            for i in range(2, 5):
+            for i in range(3, 6):
                 pref = word[:i]
                 prefixes[pref] = prefixes.get(pref, 0) + 1
                 suff = word[-i:]
@@ -56,14 +73,16 @@ class FeatureExtractor:
         prefix_features = self.get_prefix_features(word)
         suffix_features = self.get_suffix_features(word)
         word_length_feature = np.array([[len(word)]])
-        capital_letters_feature = self.get_capital_letters_features(word)
-        special_characters_feature = self.get_special_characters_feature(word)
+        capital_letters_feature = FeatureExtractor.get_capital_letters_features(word)
+        digits_feature = FeatureExtractor.get_digits_features(word)
+        special_characters_feature = FeatureExtractor.get_special_characters_feature(word)
         previous_genes_features = np.array([prev_labels])
         return np.concatenate(
             (prefix_features,
              suffix_features,
              word_length_feature,
              capital_letters_feature,
+             digits_feature,
              special_characters_feature,
              previous_genes_features), axis=1)
 
@@ -86,11 +105,13 @@ class FeatureExtractor:
         suffixes_size = len(self.suffixes)
         word_length_size = 1
         capital_letters_size = 1
+        digits_size = 1
         special_characters_size = 1
         preceding_genes_size = self.ngram_size - 1
         return prefixes_size \
                + suffixes_size \
                + word_length_size \
                + capital_letters_size \
+               + digits_size \
                + special_characters_size \
                + preceding_genes_size

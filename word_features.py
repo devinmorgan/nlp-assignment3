@@ -1,21 +1,6 @@
-from string import ascii_lowercase, ascii_uppercase, digits
+from string import ascii_uppercase
 import numpy as np
 
-# GENE_1_LABEL = "GENE1"
-# GENE_2_LABEL = "GENE2"
-# TAG_LABEL = "TAG"
-#
-# NON_GENE_TAG = "TAG"
-# GENE_TAG = "GENE1"
-#
-#
-# def get_label_for_tag(tag):
-#     if tag == TAG_LABEL:
-#         return 0
-#     if tag == GENE_1_LABEL:
-#         return 1
-#     if tag == GENE_2_LABEL:
-#         return 1
 
 CAPITAL_LETTERS = set(ascii_uppercase)
 SPECIAL_CHARACTERS = set("#$%&*()-_+=[]|:;\"\'<,>.?/")
@@ -23,7 +8,7 @@ SPECIAL_CHARACTERS = set("#$%&*()-_+=[]|:;\"\'<,>.?/")
 
 class FeatureExtractor:
     def __init__(self, train_corpus, ngram_size, pref_suff_uniqueness=30):
-        self.n = ngram_size
+        self.ngram_size = ngram_size
         self.min_uniqueness = pref_suff_uniqueness
         self.prefixes, self.prefix_index_mapping, self.suffixes, self.suffix_index_mapping = self.extract_prefixes_and_suffixes(train_corpus)
 
@@ -95,3 +80,17 @@ class FeatureExtractor:
             if word[-len(suff):] == suff:
                 suffix_feature_vector[index] = 1
         return suffix_feature_vector
+
+    def feature_vector_size(self):
+        prefixes_size = len(self.prefixes)
+        suffixes_size = len(self.suffixes)
+        word_length_size = 1
+        capital_letters_size = 1
+        special_characters_size = 1
+        preceding_genes_size = self.ngram_size
+        return prefixes_size \
+               + suffixes_size \
+               + word_length_size \
+               + capital_letters_size \
+               + special_characters_size \
+               + preceding_genes_size

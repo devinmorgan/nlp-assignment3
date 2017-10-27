@@ -71,14 +71,14 @@ class FeatureExtractor:
         prefix_feature_vector = np.zeros((1, len(self.prefixes)))
         for pref, index in self.prefix_index_mapping.iteritems():
             if word[:len(pref)] == pref:
-                prefix_feature_vector[index] = 1
+                prefix_feature_vector[:, index] = 1
         return prefix_feature_vector
 
     def get_suffix_features(self, word):
         suffix_feature_vector = np.zeros((1, len(self.suffixes)))
         for suff, index in self.suffix_index_mapping.iteritems():
             if word[-len(suff):] == suff:
-                suffix_feature_vector[index] = 1
+                suffix_feature_vector[:, index] = 1
         return suffix_feature_vector
 
     def feature_vector_size(self):
@@ -87,7 +87,7 @@ class FeatureExtractor:
         word_length_size = 1
         capital_letters_size = 1
         special_characters_size = 1
-        preceding_genes_size = self.ngram_size
+        preceding_genes_size = self.ngram_size - 1
         return prefixes_size \
                + suffixes_size \
                + word_length_size \

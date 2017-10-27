@@ -12,6 +12,7 @@ class MaxEnt2:
     def __init__(self, training_corpus_path, ngram_size, pref_suff_uniqueness):
         self.logistic = LogisticRegression()
         self.ngram_size = ngram_size
+        self.training_corpus_path = training_corpus_path
         self.fe = FeatureExtractor(training_corpus_path, ngram_size, pref_suff_uniqueness)
 
     @staticmethod
@@ -25,8 +26,9 @@ class MaxEnt2:
 
     @staticmethod
     def add_new_and_remove_oldest(array, new_val):
-        array.pop()
-        array[:0] = new_val
+        if len(array) > 0:
+            array.pop()
+            array[:0] = [new_val]
         return array
 
     @staticmethod
@@ -50,7 +52,7 @@ class MaxEnt2:
         words_to_labels = MaxEnt2.extract_words_and_labels(corpus_path)
         feature_vectors = []
         labels = []
-        prev_labels = [0]*self.ngram_size
+        prev_labels = [0]*(self.ngram_size - 1)
         for word, label in words_to_labels.iteritems():
             feature_vector = self.fe.get_feature_vector_for_word(word, prev_labels)
             feature_vectors.append(feature_vector)
@@ -65,15 +67,15 @@ class MaxEnt2:
             data_matrix[i:i + 1, :] = feature_vectors[i]
         return data_matrix, labels_vector
 
-    def train(self, training_data_file):
-        train_d, train_l = self.extract_data_and_labels(training_data_file)
+    def train(self):
+        train_d, train_l = self.extract_data_and_labels(self.training_corpus_path)
         self.logistic.fit(train_d, train_l)
 
     def tag_text(self, text):
         tokens = text.strip().split(" ")
         new_tokens = []
         words_list = [token.split("_")[0] for token in tokens]
-        prev_labels = [0] * self.ngram_size
+        prev_labels = [0] * (self.ngram_size - 1)
         for word in words_list:
             feature_vector = self.fe.get_feature_vector_for_word(word, prev_labels)
             prediction = self.logistic.predict(feature_vector)
@@ -82,6 +84,6 @@ class MaxEnt2:
                 tag = GENE_1_LABEL
             new_token = word + "_" + tag
             new_tokens.append(new_token)
-            prev_labels = MaxEnt2.add_new_and_remove_oldest(prev_labels, prediction)
+            prev_labels = MaxEnt2.add_new_and_remove_oldest(prev_labels, float(prediction))
         return " ".join(new_tokens)
 

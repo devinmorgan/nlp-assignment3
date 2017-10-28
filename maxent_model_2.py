@@ -4,9 +4,10 @@ from sklearn.linear_model import LogisticRegression
 
 
 class MaxEnt2:
-    def __init__(self, context_word_size):
+    def __init__(self, context_word_size, viterbi=False):
         self.logistic = LogisticRegression()
         self.cws = context_word_size
+        self.viterbi = viterbi
 
     @staticmethod
     def add_new_and_remove_oldest(array, new_value):
@@ -77,7 +78,7 @@ class MaxEnt2:
         new_tokens = []
         words_list = [""] * (self.cws - 1) + [token.split("_")[0] for token in tokens]
         prev_labels = [2] * (self.cws - 1)
-        for i in xrange(len(words_list)):
+        for i in xrange(self.cws - 1, len(words_list)):
             context_words = tuple([words_list[j] for j in xrange(i - self.cws + 1, i + 1)])
             feature_vector = self.get_feature_vector_for_ngram(context_words, prev_labels)
             prediction = self.logistic.predict(feature_vector)
@@ -90,46 +91,53 @@ class MaxEnt2:
         return " ".join(new_tokens)
 
     def viterbi_tag_text(self, text):
-        #todo: figure out how to pass prev_label values ot self.get_feature_vector...(context_words, prev_labels)
         is_gene_table = [1]
         not_gene_table = [1]
-        is_gene_labels = []
-        not_gene_lables = []
-        prev_labels = [2] * (self.cws - 1)
+        is_gene_labels = [0] * (self.cws - 1)
+        not_gene_lables = [0] * (self.cws - 1)
         tokens = text.strip().split(" ")
+        tags_list = [token.split("_")[1] for token in tokens]
         words_list = [""] * (self.cws - 1) + [token.split("_")[0] for token in tokens]
-        for i in xrange(len(words_list)):
+        for i in xrange(self.cws - 1, len(words_list)):
             context_words = tuple([words_list[j] for j in xrange(i - self.cws + 1, i + 1)])
-            prev_labels[-1] = 1
-            prev_word_is_gene_fv = self.get_feature_vector_for_ngram(context_words, prev_labels)
+
+            prev_word_is_gene_fv = self.get_feature_vector_for_ngram(context_words, is_gene_labels[-(self.cws-1):])
             prev_word_is_gene_distribution = self.logistic.predict_proba(prev_word_is_gene_fv)[0]
 
-            prev_labels[-1] = 0
-            prev_word_not_gene_fv = self.get_feature_vector_for_ngram(context_words, prev_labels)
+            prev_word_not_gene_fv = self.get_feature_vector_for_ngram(context_words, not_gene_lables[-(self.cws-1):])
             prev_word_not_gene_distribution = self.logistic.predict_proba(prev_word_not_gene_fv)[0]
 
             prob_is_gene_and_prev_is_gene = prev_word_is_gene_distribution[1] * is_gene_table[-1]
-            prob_is_gene_and_prev_not_gene = prev_word_not_gene_distribution[1] * not_gene_table[1]
+            prob_is_gene_and_prev_not_gene = prev_word_not_gene_distribution[1] * not_gene_table[-1]
             if prob_is_gene_and_prev_is_gene > prob_is_gene_and_prev_not_gene:
                 is_gene_table.append(prob_is_gene_and_prev_is_gene)
-                is_gene_labels.append(1)
+                is_gene_labels = is_gene_labels + [1]
             else:
                 is_gene_table.append(prob_is_gene_and_prev_not_gene)
-                is_gene_labels.append(0)
+                is_gene_labels = not_gene_lables + [1]
 
-
-            prob_not_gene_and_prev_is_gene = prev_word_is_gene_distribution[0] * is_gene_table[-1]
-            prob_not_gene_and_prev_not_gene = prev_word_not_gene_distribution[0] * not_gene_table[1]
+            prob_not_gene_and_prev_is_gene = prev_word_is_gene_distribution[0] * is_gene_table[-2]
+            prob_not_gene_and_prev_not_gene = prev_word_not_gene_distribution[0] * not_gene_table[-1]
             if prob_not_gene_and_prev_is_gene > prob_not_gene_and_prev_not_gene:
                 not_gene_table.append(prob_not_gene_and_prev_is_gene)
-                not_gene_lables.append(1)
+                not_gene_lables = is_gene_labels[:-1] + [0]
             else:
                 not_gene_table.append(prob_not_gene_and_prev_not_gene)
-                not_gene_lables.append(0)
+                not_gene_lables = not_gene_lables + [0]
 
+        words_list = words_list[self.cws - 1:]
+        if is_gene_table[-1] > not_gene_table[-1]:
+            best_sequence = is_gene_labels[self.cws - 1:]
+        else:
+            best_sequence = not_gene_table[self.cws - 1:]
 
-            prev_labels = MaxEnt2.add_new_and_remove_oldest(prev_labels, pass)
+        new_tokens = []
+        for word, label in zip(words_list, best_sequence):
+            tag = wf.GENE_TAG if label == 1 else wf.NON_GENE_TAG
+            new_tokens.append(word + "_" + tag)
 
-    def tag_text(self, text, viterbi=False):
-        return self.viterbi_tag_text(text) if viterbi else self.greedy_tag_text(text)
+        return " ".join(new_tokens)
+
+    def tag_text(self, text):
+        return self.viterbi_tag_text(text) if self.viterbi else self.greedy_tag_text(text)
 

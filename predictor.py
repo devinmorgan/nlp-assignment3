@@ -37,7 +37,7 @@ class Predictor:
 
 # p1 = Predictor(MaxEnt1())
 # p1.tag_document(DEV_DATA_CORPUS, MODEL_1_OUTPUT_FILE)
-p2 = Predictor(MaxEnt2(context_word_size=5))
+p2 = Predictor(MaxEnt2(context_word_size=2, viterbi=True))
 p2.tag_document(DEV_DATA_CORPUS, MODEL_2_OUTPUT_FILE)
 
 # import numpy as np

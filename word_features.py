@@ -13,7 +13,7 @@ TAG_LABEL = "TAG"
 class FeatureExtractor:
     def __init__(self, train_corpus, ngram_size, pref_suff_uniqueness=30):
         self.ngram_size = ngram_size
-        self.min_uniqueness = pref_suff_uniqueness
+        # self.min_uniqueness = pref_suff_uniqueness
         self.char_ngrams, self.char_ngram_mapping = self.extract_char_ngrams(train_corpus)
 
     @staticmethod
@@ -40,6 +40,15 @@ class FeatureExtractor:
                 count += 1
         return np.array([[count]])
 
+    @staticmethod
+    def get_char_igrams_from_word(word, i):
+        igrams = set()
+        if len(word) < i:
+            return igrams
+        for j in xrange(len(word) - i + 1):
+            igrams.add(word[j:j+i])
+        return igrams
+
     def extract_char_ngrams(self, corpus_path):
         words = set()
         with open(corpus_path) as f:
@@ -55,20 +64,16 @@ class FeatureExtractor:
                             words.add(word)
                 else:
                     break
-        char_ngrams = {}
+        char_ngrams = set()
         for word in words:
-            if len(word) >= 3:
-                for i in xrange(len(word) - 2):
-                    char_ngram = word[i:i+3]
-                    char_ngrams[char_ngram] = char_ngrams.get(char_ngram, 0) + 1
-            else:
-                char_ngrams[word] = char_ngrams.get(word, 0) + 1
-        strong_ngrams = set([char_ngram for char_ngram in char_ngrams.keys() if char_ngrams[char_ngram] >= self.min_uniqueness])
-        ngram_index_mapping = { char_ngram:i for i, char_ngram in enumerate(strong_ngrams) }
-        return strong_ngrams, ngram_index_mapping
+            for i in range(2, 5):
+                char_igrams = FeatureExtractor.get_char_igrams_from_word(word, i)
+                char_ngrams.update(char_igrams)
+        char_ngram_mappings = { ngram:index for index, ngram in enumerate(char_ngrams) }
+        return char_ngrams, char_ngram_mappings
 
     def get_feature_vector_for_word(self, word, prev_labels):
-        char_ngram_features = self.get_ngram_features(word)
+        char_ngram_features = self.get_char_ngram_features(word)
         word_length_feature = np.array([[len(word)]])
         capital_letters_feature = FeatureExtractor.get_capital_letters_features(word)
         digits_feature = FeatureExtractor.get_digits_features(word)
@@ -82,7 +87,7 @@ class FeatureExtractor:
              special_characters_feature,
              previous_genes_features), axis=1)
 
-    def get_ngram_features(self, word):
+    def get_char_ngram_features(self, word):
         ngram_feature_vector = np.zeros((1, len(self.char_ngrams)))
         for char_ngram, index in self.char_ngram_mapping.iteritems():
             if char_ngram in word:

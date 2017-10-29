@@ -11,7 +11,7 @@ TAG_LABEL = "TAG"
 
 
 class FeatureExtractor:
-    def __init__(self, train_corpus, ngram_size, pref_suff_uniqueness=30):
+    def __init__(self, train_corpus, ngram_size):
         self.ngram_size = ngram_size
         # self.min_uniqueness = pref_suff_uniqueness
         self.char_ngrams, self.char_ngram_mapping = self.extract_char_ngrams(train_corpus)
@@ -66,7 +66,7 @@ class FeatureExtractor:
                     break
         char_ngrams = set()
         for word in words:
-            for i in range(2, 5):
+            for i in range(2, 4):
                 char_igrams = FeatureExtractor.get_char_igrams_from_word(word, i)
                 char_ngrams.update(char_igrams)
         char_ngram_mappings = { ngram:index for index, ngram in enumerate(char_ngrams) }

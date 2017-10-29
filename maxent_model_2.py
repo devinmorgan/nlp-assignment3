@@ -9,11 +9,11 @@ TAG_LABEL = "TAG"
 
 
 class MaxEnt2:
-    def __init__(self, training_corpus_path, ngram_size, pref_suff_uniqueness):
+    def __init__(self, training_corpus_path, ngram_size):
         self.logistic = LogisticRegression()
         self.ngram_size = ngram_size
         self.training_corpus_path = training_corpus_path
-        self.fe = FeatureExtractor(training_corpus_path, ngram_size, pref_suff_uniqueness)
+        self.fe = FeatureExtractor(training_corpus_path, ngram_size)
 
     @staticmethod
     def get_label_for_tag(tag):
